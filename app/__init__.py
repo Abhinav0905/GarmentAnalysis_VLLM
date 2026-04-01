@@ -1,0 +1,2 @@
+"""Fashion inspiration application."""
+

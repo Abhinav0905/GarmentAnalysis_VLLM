@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ app_name }}</title>
+    <link rel="stylesheet" href="/static/styles.css?v={{ static_version }}" />
+  </head>
+  <body>
+    <main class="layout">
+      <aside class="sidebar">
+        <h1>{{ app_name }}</h1>
+        <p class="muted">
+          Upload fashion references, let the model classify them, then search and annotate the library.
+        </p>
+
+        <section class="panel">
+          <h2>Upload</h2>
+          <form id="upload-form">
+            <label>
+              Image
+              <input type="file" name="file" accept="image/*" required />
+            </label>
+            <label>
+              Designer
+              <input type="text" name="designer" placeholder="Jamie" />
+            </label>
+            <label>
+              Captured At
+              <input type="datetime-local" name="captured_at" />
+            </label>
+            <label>
+              Location Hint
+              <input type="text" name="location_hint" placeholder="Milan, Italy, Europe" />
+            </label>
+            <button type="submit">Upload And Classify</button>
+          </form>
+          <p id="upload-status" class="status"></p>
+        </section>
+
+        <section class="panel">
+          <h2>Search</h2>
+          <form id="search-form">
+            <label>
+              Natural Language Query
+              <input
+                type="search"
+                id="search-query"
+                name="query"
+                placeholder="embroidered neckline or artisan market"
+              />
+            </label>
+          </form>
+          <p id="search-summary" class="status muted"></p>
+        </section>
+
+        <section class="panel">
+          <h2>Filters</h2>
+          <form id="filters-form" class="filters"></form>
+        </section>
+      </aside>
+
+      <section class="content">
+        <header class="content-header">
+          <div>
+            <h2>Library</h2>
+            <p id="results-count" class="muted">0 looks</p>
+            <p id="library-error" class="status"></p>
+          </div>
+          <div class="view-tabs" role="tablist" aria-label="Library views">
+            <button type="button" class="view-tab is-active" data-view="grid" role="tab" aria-selected="true">
+              Grid View
+            </button>
+            <button
+              type="button"
+              class="view-tab"
+              data-view="classification"
+              role="tab"
+              aria-selected="false"
+            >
+              Classification
+            </button>
+          </div>
+        </header>
+        <section id="grid-view" class="view-panel is-active">
+          <div id="cards" class="cards"></div>
+        </section>
+        <section id="classification-view" class="view-panel">
+          <div id="classification-detail" class="detail-panel"></div>
+        </section>
+      </section>
+    </main>
+
+    <script src="/static/app.js?v={{ static_version }}" defer></script>
+  </body>
+</html>

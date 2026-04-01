@@ -1,0 +1,139 @@
+Metadata-Version: 2.4
+Name: fashion-inspiration-app
+Version: 0.1.0
+Summary: Simple AI-powered fashion inspiration library
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: fastapi>=0.115.0
+Requires-Dist: httpx>=0.27.0
+Requires-Dist: jinja2>=3.1.4
+Requires-Dist: pydantic>=2.7.0
+Requires-Dist: python-multipart>=0.0.9
+Requires-Dist: uvicorn>=0.30.0
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0.0; extra == "dev"
+
+# Fashion Inspiration Library
+
+This repo is a lightweight take-home implementation for the "Fashion Garment Classification & Inspiration Web App" brief. The code is intentionally simple and split into small packages so each concern is easy to follow:
+
+- `app/prompts` for model instructions
+- `app/llm_clients` for provider wrappers
+- `app/guardrails` for validation and normalization
+- `app/token_calculation` for prompt cost estimates
+- `app/data_models` for request, response, and full-text search models
+- `app/utils` for config, parsing, and file helpers
+- `app/agent_tracing` for request traces
+- `app/api` and `app/api/routers` for the web layer
+- `app/services` and `app/repositories` for workflow and persistence
+
+The app runs locally with a mock multimodal client by default, so there is no API key requirement for the core demo. If you want live model classification, set `MODEL_PROVIDER=openai` and provide `OPENAI_API_KEY`.
+
+## Features
+
+- Upload garment photos from the browser
+- Classify each photo into a natural-language description plus structured metadata
+- Store results in SQLite
+- Search with SQLite FTS5 across AI descriptions, trend notes, and user annotations
+- Filter on garment, color, style, material, occasion, designer, location, and time
+- Add designer notes and tags that stay distinct from AI-generated metadata
+- Record simple request traces and token estimates for each classification run
+
+## Local Setup
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e '.[dev]'
+python -m app.main
+```
+
+Open `http://127.0.0.1:8000`.
+
+### Optional live OpenAI mode
+
+```bash
+export MODEL_PROVIDER=openai
+export OPENAI_API_KEY=your_key_here
+export OPENAI_MODEL=gpt-4o-mini
+python -m app.main
+```
+
+## Project Layout
+
+```text
+/app
+  /api
+  /agent_tracing
+  /data_models
+  /guardrails
+  /llm_clients
+  /prompts
+  /repositories
+  /services
+  /token_calculation
+  /utils
+/eval
+/tests
+README.md
+```
+
+## Tests
+
+Run:
+
+```bash
+pytest
+```
+
+Included coverage:
+
+- Unit test for model-output JSON parsing
+- Integration test for location and time filters
+- End-to-end test for upload, classify, annotate, and filter
+
+## Evaluation
+
+The manager-supplied Pexels fashion page is used as the seed source for the evaluation set.
+
+- `eval/build_pexels_seed_set.py` scrapes image URLs from `https://www.pexels.com/search/fashion/`
+- `eval/pexels_test_set.json` is the generated starter dataset
+- `eval/evaluate_classifier.py` downloads those images and reports per-attribute accuracy
+
+Build the dataset:
+
+```bash
+python eval/build_pexels_seed_set.py
+```
+
+Run the evaluator with the mock client:
+
+```bash
+python eval/evaluate_classifier.py --provider mock
+```
+
+Run the evaluator with OpenAI:
+
+```bash
+python eval/evaluate_classifier.py --provider openai --model gpt-4o-mini --api-key "$OPENAI_API_KEY"
+```
+
+### Important note about labels
+
+The checked-in Pexels dataset is a **heuristic seed set**, not a gold-standard manually reviewed benchmark. The evaluator only scores fields that have a seed label and reports coverage per attribute. For a final submission, I would manually review all 50-100 images and tighten the expected labels before trusting the accuracy numbers.
+
+## Architecture Notes
+
+- FastAPI keeps the API small and easy to run locally.
+- SQLite keeps setup minimal and gives full-text search through FTS5.
+- The default mock client makes the app demoable without external dependencies.
+- The OpenAI client is isolated behind `app/llm_clients` so the provider can be swapped later.
+- Dynamic filters are generated from stored data, not hardcoded.
+
+## Tradeoffs
+
+- The UI is intentionally thin. It is enough to prove the workflow, not a production design system.
+- Token counting is an estimate, not a billing-grade calculation.
+- The OpenAI response parsing is intentionally small and assumes text-based JSON output.
+- The evaluation dataset is present and runnable, but the labels still need full manual review for a real benchmark.
+
